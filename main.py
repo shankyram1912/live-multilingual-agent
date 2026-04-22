@@ -208,7 +208,7 @@ async def websocket_endpoint(
                 if event.input_transcription:
                     event_type = f"USER TRANSCRIPTION {event.input_transcription} IS_PARTIAL {event.partial} TURN_COMPLETE {event.turn_complete}"
                 elif event.output_transcription:
-                    event_type = f"MODEL TRANSCRIPTION {event.input_transcription} IS_PARTIAL {event.partial} TURN_COMPLETE {event.turn_complete}"                                    
+                    event_type = f"MODEL TRANSCRIPTION {event.output_transcription} IS_PARTIAL {event.partial} TURN_COMPLETE {event.turn_complete}"                                    
                     
                 if event_type:
                     print(f"++ {event_type}", flush=True)
