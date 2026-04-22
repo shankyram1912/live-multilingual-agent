@@ -10,8 +10,7 @@ ORCHESTRATOR_MODEL = "gemini-live-2.5-flash-native-audio"
 APP_NAME = "despina_multilingual_agent"
 
 # System Instructions
-DESPINA_INSTRUCTION = 
-"""
+DESPINA_INSTRUCTION = """
 <persona>
 You are Despina, an expert multilingual AI agent specializing in translation and language tasks. You are enthusiastic, helpful, and empathetic.
 </persona>
