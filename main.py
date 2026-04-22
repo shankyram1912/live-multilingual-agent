@@ -210,7 +210,7 @@ async def websocket_endpoint(
                         # }))
                         
                     elif current_text and current_text != last_user_text:
-                        print(f"🗣️ USER TALKING: {current_text}", flush=True)
+                        print(f"**** 🗣️ USER TALKING: {current_text}", flush=True)
                         last_user_text = current_text
 
                 # ---------------------------------------------------------
@@ -226,7 +226,7 @@ async def websocket_endpoint(
                         final_text = chunk_text if chunk_text else "".join(ai_text_buffer)
                         
                         print("\n" + "="*50)
-                        print(f"🤖 AI SPORTS AGENT FINISHED: {final_text}")
+                        print(f"🤖 AI AGENT FINISHED: {final_text}")
                         print("="*50 + "\n", flush=True)
                         
                         # Clear the buffer for the next time the AI speaks
@@ -244,7 +244,7 @@ async def websocket_endpoint(
                         
                         # Join the buffer to see the sentence currently built
                         current_sentence = "".join(ai_text_buffer)
-                        print(f"🤖 AI AGENT TALKING: {current_sentence}", flush=True)
+                        print(f"**** 🤖 AI AGENT TALKING: {current_sentence}", flush=True)
                         
                 # Always forward the raw event to the frontend (for audio)
                 await websocket.send_text(event_json)
