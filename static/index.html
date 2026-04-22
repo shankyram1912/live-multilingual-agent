@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multi Lingual Agent</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Link to the separated ADK App Logic -->
+    <script src="/live-multilingual-agent/static/js/app.js" type="module"></script>
+    <style>
+        /* --- PREMIUM DESIGN SYSTEM --- */
+        :root {
+            --bg-base: #000000; --panel-bg: rgba(24, 24, 26, 0.5); --panel-border: rgba(255, 255, 255, 0.08);
+            --panel-highlight: inset 0 1px 1px rgba(255, 255, 255, 0.15); --text-primary: #F5F5F7;
+            --text-secondary: #A1A1A6; --text-tertiary: #7A7A80; --apple-green: #30D158;
+            --apple-red: #FF453A; --glass-blur: blur(60px); --font-family: 'Inter', sans-serif;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: var(--font-family); -webkit-font-smoothing: antialiased; }
+        body { background-color: var(--bg-base); color: var(--text-primary); height: 100vh; display: flex; justify-content: center; align-items: center; overflow: hidden; padding: 40px; position: relative; }
+        
+        body::before { content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: radial-gradient(circle at 40% 60%, rgba(10, 132, 255, 0.06) 0%, transparent 40%), radial-gradient(circle at 70% 30%, rgba(191, 90, 242, 0.04) 0%, transparent 30%), radial-gradient(circle at 20% 80%, rgba(48, 209, 88, 0.03) 0%, transparent 40%); animation: ambient-shift 25s ease-in-out infinite alternate; z-index: -1; }
+        @keyframes ambient-shift { 0% { transform: translate(0, 0) scale(1); } 100% { transform: translate(-3%, -3%) scale(1.05); } }
+
+        /* 2-Panel Layout */
+        #dashboard { display: grid; grid-template-columns: 360px 1fr; gap: 32px; width: 100%; max-width: 1400px; height: 100%; max-height: 800px; }
+        .glass-panel { background: var(--panel-bg); backdrop-filter: var(--glass-blur); border: 1px solid var(--panel-border); box-shadow: 0 30px 60px rgba(0, 0, 0, 0.5), var(--panel-highlight); border-radius: 40px; display: flex; flex-direction: column; overflow: hidden; position: relative; }
+
+        /* PANEL 1: AI CORE */
+        #voice-controller { justify-content: space-evenly; padding: 48px 40px; z-index: 10; }
+        .agent-header { display: flex; flex-direction: column; gap: 6px; text-align: center; }
+        .agent-title { font-size: 26px; font-weight: 700; letter-spacing: -0.8px; color: #FFFFFF; }
+        .agent-subtitle { font-size: 14px; font-weight: 500; color: var(--text-secondary); letter-spacing: -0.1px; }
+
+        .orb-interaction-zone { cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 32px; transition: transform 0.2s cubic-bezier(0.25, 1, 0.5, 1); border-radius: 32px; padding: 10px; }
+        .orb-interaction-zone:active { transform: scale(0.95); }
+        .orb-container { position: relative; width: 160px; height: 160px; display: flex; justify-content: center; align-items: center; }
+        .orb { position: relative; width: 110px; height: 110px; border-radius: 50%; background: linear-gradient(135deg, #43CBFF 10%, #9708CC 100%); box-shadow: inset 0 10px 20px rgba(255,255,255,0.4), inset 0 -10px 20px rgba(0,0,0,0.4), 0 0 40px rgba(151, 8, 204, 0.4); transition: all 0.5s; display: flex; justify-content: center; align-items: center; }
+        .orb::before, .orb::after { content: ''; position: absolute; border-radius: 50%; inset: -8px; background: inherit; opacity: 0.3; z-index: -1; transition: all 0.5s ease; }
+
+        .state-idle .orb { transform: scale(1); animation: breathe 5s infinite ease-in-out; }
+        
+        .state-listening .orb { background: linear-gradient(135deg, #0A84FF 10%, #32D74B 100%); box-shadow: inset 0 10px 20px rgba(255,255,255,0.4), 0 0 60px rgba(10, 132, 255, 0.6); animation: pulse-listen 1.2s infinite alternate ease-in-out; }
+        .state-listening .orb::before { animation: ripple 1.5s infinite linear; }
+        .state-listening .orb::after { animation: ripple 1.5s infinite linear 0.75s; }
+        
+        .state-speaking .orb { background: linear-gradient(135deg, #BF5AF2 10%, #FF375F 100%); box-shadow: inset 0 10px 20px rgba(255,255,255,0.4), 0 0 80px rgba(191, 90, 242, 0.8); animation: speak-wave 0.7s infinite alternate ease-in-out; }
+        .state-speaking .orb::before { animation: ripple 1s infinite linear; }
+
+        /* --- NEW: THINKING STATE (Liquid Core + Nodes) --- */
+        .state-thinking .orb {
+            background: radial-gradient(circle at 50% 50%, #ffffff 0%, #d1d1d6 100%);
+            animation: think-wave 2s infinite alternate ease-in-out;
+        }
+        .state-thinking .orb::before {
+            inset: -20px;
+            background: transparent; 
+            border: 3px dotted rgba(255, 255, 255, 0.6);
+            border-radius: 50%;
+            mask-image: linear-gradient(to bottom, black 20%, transparent 80%);
+            -webkit-mask-image: linear-gradient(to bottom, black 20%, transparent 80%);
+            animation: spin-nodes 4s linear infinite;
+            opacity: 1;
+        }
+        .state-thinking .orb::after {
+            inset: -10px;
+            background: transparent; 
+            border: 2px solid transparent;
+            border-top: 3px solid #ffffff;
+            border-right: 3px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 -10px 20px -5px rgba(255, 255, 255, 0.8);
+            border-radius: 50%;
+            animation: spin-synthesis 1.5s cubic-bezier(0.68, -0.55, 0.265, 1.55) infinite;
+            opacity: 1;
+        }
+
+        .mic-instruction { font-size: 12px; font-weight: 700; color: var(--text-secondary); letter-spacing: 1.5px; text-transform: uppercase; background: rgba(255, 255, 255, 0.04); padding: 10px 24px; border-radius: 30px; border: 1px solid rgba(255, 255, 255, 0.08); box-shadow: inset 0 1px 0 rgba(255,255,255,0.1); }
+
+        .system-vitals { display: flex; flex-direction: column; gap: 32px; border-top: 1px solid rgba(255,255,255,0.06); padding-top: 32px; }
+        .vital-row { display: flex; justify-content: space-between; align-items: center; }
+        .vital-label { color: var(--text-secondary); font-weight: 500; font-size: 16px; letter-spacing: -0.2px; }
+        
+        .status-badge { display: flex; align-items: center; gap: 8px; background: rgba(255, 69, 58, 0.15); color: var(--apple-red); padding: 6px 14px; border-radius: 16px; font-size: 14px; font-weight: 800; letter-spacing: 0.8px; text-transform: uppercase; }
+        .status-badge.active { background: rgba(48, 209, 88, 0.15); color: var(--apple-green); box-shadow: 0 0 15px rgba(48, 209, 88, 0.1); }
+        .status-badge.active::before { content: ''; width: 8px; height: 8px; background: var(--apple-green); border-radius: 50%; box-shadow: 0 0 12px var(--apple-green); animation: blink 2s infinite ease-in-out; }
+
+        /* --- END CONVERSATION BUTTON --- */
+        .end-btn-container { display: flex; justify-content: center; margin-top: 16px; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; }
+        .end-btn-container.visible { opacity: 1; pointer-events: auto; }
+        .end-btn { background: rgba(255, 69, 58, 0.1); color: var(--apple-red); border: 1px solid rgba(255, 69, 58, 0.3); padding: 12px 32px; border-radius: 30px; font-size: 13px; font-weight: 700; cursor: pointer; text-transform: uppercase; letter-spacing: 1.5px; transition: all 0.2s ease; }
+        .end-btn:hover { background: rgba(255, 69, 58, 0.25); box-shadow: 0 0 20px rgba(255, 69, 58, 0.2); transform: scale(1.02); }
+        .end-btn:active { transform: scale(0.98); }
+        
+        /* PANEL 2: TRANSCRIPT LAYER */
+        #transcript-panel { padding: 60px 80px; display: flex; flex-direction: column; justify-content: center; gap: 24px; position: relative; }
+        #transcript-panel::before { content: ''; position: absolute; left: 0; top: 25%; height: 50%; width: 6px; background: var(--text-tertiary); border-radius: 0 6px 6px 0; opacity: 0.3; }
+        
+        .user-text { color: var(--text-secondary); font-size: 24px; font-weight: 400; letter-spacing: -0.2px; font-style: italic; transition: opacity 0.5s ease;}
+        .ai-text { font-weight: 600; font-size: 32px; letter-spacing: -1px; background: linear-gradient(180deg, #FFFFFF 0%, #B0B0B5 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; min-height: 50px; line-height: 1.3;}
+
+        /* ANIMATIONS */
+        @keyframes breathe { 0%, 100% { transform: scale(1); box-shadow: inset 0 10px 20px rgba(255,255,255,0.4), 0 0 20px rgba(151, 8, 204, 0.2); } 50% { transform: scale(1.03); box-shadow: inset 0 10px 20px rgba(255,255,255,0.4), 0 0 45px rgba(151, 8, 204, 0.5); } }
+        @keyframes pulse-listen { 0% { transform: scale(1.05); } 100% { transform: scale(1.2); box-shadow: inset 0 10px 20px rgba(255,255,255,0.5), 0 0 90px rgba(48, 209, 88, 0.7); } }
+        @keyframes speak-wave { 0% { transform: scale(1.05); border-radius: 50%; } 50% { transform: scale(1.2); border-radius: 35% 65% 65% 35% / 35% 35% 65% 65%; } 100% { transform: scale(1.1); border-radius: 65% 35% 35% 65% / 65% 65% 35% 35%; } }
+        @keyframes ripple { 0% { transform: scale(0.8); opacity: 0.5; } 100% { transform: scale(1.6); opacity: 0; } }
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+        
+        /* --- NEW: THINKING ANIMATIONS --- */
+        @keyframes think-wave {
+            0% { transform: scale(0.98); border-radius: 50%; box-shadow: 0 0 20px rgba(255, 255, 255, 0.3), inset 0 0 10px #ffffff; }
+            50% { transform: scale(1.04); border-radius: 35% 65% 65% 35% / 35% 35% 65% 65%; box-shadow: 0 0 35px rgba(255, 255, 255, 0.6), inset 0 0 20px #ffffff; }
+            100% { transform: scale(1.01); border-radius: 65% 35% 35% 65% / 65% 65% 35% 35%; box-shadow: 0 0 50px rgba(255, 255, 255, 0.8), inset 0 0 30px #ffffff; }
+        }
+        @keyframes spin-nodes { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        @keyframes spin-synthesis { 0% { transform: rotate(0deg) scale(1); } 50% { transform: rotate(180deg) scale(1.05); border-top-width: 5px; } 100% { transform: rotate(360deg) scale(1); } }
+    </style>
+</head>
+<body>
+
+    <div id="dashboard">
+        <!-- 1. LEFT PANEL -->
+        <div class="glass-panel" id="voice-controller">
+            <div class="agent-header">
+                <div class="agent-title">Multi Lingual Agent</div>
+                <div class="agent-subtitle">ADK Agent Powered By Gemini Live Flash</div>
+            </div>
+
+            <!-- ID added here for app.js to bind the connection -->
+            <div class="orb-interaction-zone" id="orb-button">
+                <div class="orb-container state-idle" id="orb-state">
+                    <div class="orb"></div>
+                </div>
+                <div class="mic-instruction" id="mic-text">Tap to Connect</div>
+            </div>
+
+            <div class="system-vitals">
+                <div class="vital-row">
+                    <span class="vital-label">Agent Status</span>
+                    <span class="status-badge" id="socket-status">Offline</span>
+                </div>
+
+                <!-- NEW: End Conversation Button -->
+                <div class="end-btn-container" id="end-btn-container">
+                    <button class="end-btn" id="end-btn">End Conversation</button>
+                </div>                
+            </div>
+        </div>
+
+        <!-- 2. RIGHT PANEL -->
+        <div class="glass-panel" id="transcript-panel">
+            <div class="user-text" id="transcript-user">Press connect, then speak...</div>
+            <div class="ai-text" id="transcript-ai"></div>
+        </div>
+    </div>
+</body>
+</html>
