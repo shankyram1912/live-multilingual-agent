@@ -5,8 +5,7 @@ logger = logging.getLogger(__name__)
 
 def travel_risk_assessment(country_code: str) -> str:
     """
-    Retrieves the current travel advisory assessment and safety description for a given country only if the user specifically asks for information related to it.
-    Call this tool whenever the user discusses safety or travel advisories while planning a trip to a specific country.
+    Call this tool whenever the user specifically raised questions on safety bulletins or travel advisories to a specific country.
     
     Args:
         country_code: The 2-letter ISO 3166-1 alpha-2 country code (e.g., 'JP', 'FR', 'BR').
