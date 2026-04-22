@@ -206,14 +206,24 @@ async def websocket_endpoint(
                             event_type = f"USER FUNCTION CALL RESPONSE {part.function_response.name} OUTPUT PARAMS {part.function_response.response}"                        
                         
                 if event.input_transcription:
-                    event_type = f"USER TRANSCRIPTION {event.input_transcription} IS_PARTIAL {event.partial} TURN_COMPLETE {event.turn_complete}"
+                    if(event.partial):
+                        event_type = f"🗣️ USER TALKING: {event.input_transcription} IS_PARTIAL {event.partial} TURN_COMPLETE {event.turn_complete}"
+                    else:
+                        print("\n" + "-"*50)
+                        print(f"🗣️ USER FINISHED: {event.input_transcription}")
+                        print("-" *50 + "\n", flush=True)                        
                 elif event.output_transcription:
-                    event_type = f"MODEL TRANSCRIPTION {event.output_transcription} IS_PARTIAL {event.partial} TURN_COMPLETE {event.turn_complete}"                                    
+                    if(event.partial):
+                        event_type = f"🤖 AI AGENT TALKING: {event.output_transcription} IS_PARTIAL {event.partial} TURN_COMPLETE {event.turn_complete}"                                    
+                    else:
+                        print("\n" + "="*50)
+                        print(f"🤖 AI AGENT FINISHED: {final_text}")
+                        print("="*50 + "\n", flush=True)                        
                     
                 if event_type:
                     print(f"++ {event_type}", flush=True)
-                else:
-                    print(f"xx {event_dict}")
+                # else:
+                #     print(f"xx UNTAGGED EVENT {event_dict}")
 
                 # ---------------------------------------------------------
                 # 1. USER INPUT PRINT LOGIC
