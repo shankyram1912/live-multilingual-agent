@@ -199,16 +199,16 @@ async def websocket_endpoint(
                         event_type = f"AUDIO {part.inline_data.mime_type} Received {len(part.inline_data.data)} bytes"
                     elif part.text:
                         event_type = f"TEXT {part.text} IS_PARTIAL {event.partial} TURN_COMPLETE {event.turn_complete}"
-                    elif event.input_transcription:
-                        event_type = f"USER TRANSCRIPTION {event.input_transcription} IS_PARTIAL {event.partial} TURN_COMPLETE {event.turn_complete}"
-                    elif event.output_transcription:
-                        event_type = f"MODEL TRANSCRIPTION {event.input_transcription} IS_PARTIAL {event.partial} TURN_COMPLETE {event.turn_complete}"
-                    
                     for part in event.content.parts:
                         if part.function_call:
                             event_type = f"MODEL FUNCTION CALL {part.function_call.name} INPUT PARAMS {part.function_call.args}"
                         elif part.function_response:
-                            event_type = f"USER FUNCTION CALL RESPONSE {part.function_response.name} OUTPUT PARAMS {part.function_response.response}"                    
+                            event_type = f"USER FUNCTION CALL RESPONSE {part.function_response.name} OUTPUT PARAMS {part.function_response.response}"                        
+                        
+                if event.input_transcription:
+                    event_type = f"USER TRANSCRIPTION {event.input_transcription} IS_PARTIAL {event.partial} TURN_COMPLETE {event.turn_complete}"
+                elif event.output_transcription:
+                    event_type = f"MODEL TRANSCRIPTION {event.input_transcription} IS_PARTIAL {event.partial} TURN_COMPLETE {event.turn_complete}"                                    
                     
                 if event_type:
                     print(f"++ {event_type}", flush=True)
