@@ -180,6 +180,9 @@ async function connectWebsocket() {
     const wsUrl = `${wsProtocol}//${window.location.host}/live-multilingual-agent/ws/${userId}/${sessionId}`;
     websocket = new WebSocket(wsUrl);
 
+    // Force binary messages to be ArrayBuffers, not Blobs, to receive audio stream directly. Does not affect Text Frames, only Binary Frames at the network protocol level.
+    websocket.binaryType = "arraybuffer";    
+
     websocket.onopen = function () {
         isConnected = true;
         isConnecting = false;
@@ -189,6 +192,17 @@ async function connectWebsocket() {
     let aiTurnActive = false;  
 
     websocket.onmessage = function (event) {
+        // --- 1. INTERCEPT RAW BINARY AUDIO (Synchronous!) ---
+        if (event.data instanceof ArrayBuffer) {
+            if (audioPlayerNode) {
+                // Send raw bytes straight to the worklet!
+                audioPlayerNode.port.postMessage(event.data);
+                setAgentState('SPEAKING');
+            }
+            return; // Stop processing this event, it's just audio.
+        }
+
+        // --- 2. EXISTING: PARSE JSON FOR EVERYTHING ELSE ---
         let adkEvent;
         try {
             adkEvent = JSON.parse(event.data);
@@ -196,20 +210,6 @@ async function connectWebsocket() {
             console.warn("Received non-JSON payload, ignoring:", event.data);
             return; // Fail gracefully
         }
-
-        // // 1. Handle custom wrapper messages from backend
-        // if (adkEvent.type === "transcript") {
-        //     if (adkEvent.role === "user") {
-        //         transcriptUser.innerText = `"${adkEvent.text}"`;
-        //     } else if (adkEvent.role === "ai") {
-        //         transcriptAi.innerText = adkEvent.text;
-        //     }
-        //     return; // Safe to return here because custom messages don't contain audio or ADK state flags
-        // }
-
-        // ==========================================
-        // EXTRACT DATA FIRST
-        // ==========================================
 
         // -- User transcription --
         if (adkEvent.inputTranscription && adkEvent.inputTranscription.text) {
@@ -221,17 +221,6 @@ async function connectWebsocket() {
                 transcriptUser.innerText = `"${text}..."`;
             }
         }
-
-        // -- AI transcription --
-        // if (adkEvent.outputTranscription && adkEvent.outputTranscription.text) {
-        //     const aiText = cleanCJKSpaces(adkEvent.outputTranscription.text);
-        //     if (!aiTurnActive) {
-        //         transcriptAi.innerText = aiText;
-        //         aiTurnActive = true;
-        //     } else {
-        //         transcriptAi.innerText += aiText;
-        //     }
-        // }
 
         // -- AI transcription --
         if (adkEvent.outputTranscription && adkEvent.outputTranscription.text) {
