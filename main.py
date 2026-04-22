@@ -190,7 +190,25 @@ async def websocket_endpoint(
                 event_json = event.model_dump_json(exclude_none=True, by_alias=True)
                 event_dict = json.loads(event_json)
                 
-                print(f"\n++++++++{event_json}++++++++\n", flush=True)
+                event_type = ""
+                
+                if event.content and event.content.parts:
+                    part = event.content.parts[0]
+                    if part.inline_data:
+                        event_type = f"AUDIO {part.inline_data.mime_type} Received {len(part.inline_data.data)} bytes"
+                    elif part.text:
+                        event_type = f"TEXT {part.text} IS_PARTIAL {event.partial} TURN_COMPLETE {event.turn_complete}"
+                    elif event.input_transcription:
+                        event_type = f"USER TRANSCRIPTION {event.input_transcription} IS_PARTIAL {event.partial} TURN_COMPLETE {event.turn_complete}"
+                    elif event.output_transcription:
+                        event_type = f"MODEL TRANSCRIPTION {event.input_transcription} IS_PARTIAL {event.partial} TURN_COMPLETE {event.turn_complete}"
+                    for part in event.content.parts:
+                        if part.function_call:
+                            event_type = f"MODEL FUNCTION CALL {part.function_call.name} ARGS {part.function_call.args}"
+                        elif part.function_response:
+                            event_type = f"USER FUNCTION CALL RESPONSE {part.function_response.name} ARGS {part.function_response.args}"                    
+                        
+                print(f"\n++++++++{event_type}++++++++\n", flush=True)
 
                 # ---------------------------------------------------------
                 # 1. USER INPUT PRINT LOGIC
