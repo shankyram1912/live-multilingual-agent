@@ -207,7 +207,7 @@ async def websocket_endpoint(
                             event_type = f"MODEL FUNCTION CALL {part.function_call.name} INPUT PARAMS {part.function_call.args}"
                         elif part.function_response:
                             print(event_dict)
-                            event_type = f"USER FUNCTION CALL RESPONSE {part.function_response.name} OUTPUT PARAMS {part.function_response.responses}"                    
+                            event_type = f"USER FUNCTION CALL RESPONSE {part.function_response.name} OUTPUT PARAMS {part.function_response.response}"                    
                         
                 print(f"\n++++++++{event_type}++++++++\n", flush=True)
 
