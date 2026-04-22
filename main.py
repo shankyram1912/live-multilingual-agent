@@ -206,24 +206,23 @@ async def websocket_endpoint(
                             event_type = f"USER FUNCTION CALL RESPONSE {part.function_response.name} OUTPUT PARAMS {part.function_response.response}"                        
                         
                 if event.input_transcription:
-                    if(event.partial):
-                        event_type = f"🗣️ USER TALKING: {event.input_transcription} IS_PARTIAL {event.partial} TURN_COMPLETE {event.turn_complete}"
-                    else:
+                    event_type = f"🗣️ USER TALKING: {event.input_transcription.text} IS_FINISHED {event.input_transcription.finished} IS_PARTIAL {event.partial} TURN_COMPLETE {event.turn_complete}"
+                    if event.input_transcription.finished:
                         print("\n" + "-"*50)
-                        print(f"🗣️ USER FINISHED: {event.input_transcription}")
+                        print(f"🗣️ USER FINISHED: {event.input_transcription.text}")
                         print("-" *50 + "\n", flush=True)                        
                 elif event.output_transcription:
-                    if(event.partial):
-                        event_type = f"🤖 AI AGENT TALKING: {event.output_transcription} IS_PARTIAL {event.partial} TURN_COMPLETE {event.turn_complete}"                                    
-                    else:
+                    event_type = f"🤖 AI AGENT TALKING: {event.output_transcription.text} IS_FINISHED {event.output_transcription.finished} IS_PARTIAL {event.partial} TURN_COMPLETE {event.turn_complete}"                        
+                    if event.input_transcription.finished:
                         print("\n" + "="*50)
-                        print(f"🤖 AI AGENT FINISHED: {event.output_transcription}")
+                        print(f"🤖 AI AGENT FINISHED: {event.output_transcription.text}")
                         print("="*50 + "\n", flush=True)                        
                     
-                if event_type:
-                    print(f"++ {event_type}", flush=True)
+                # Uncomment for event logging
+                # if event_type:
+                #     print(f"++ {event_type}", flush=True)
                 # else:
-                #     print(f"xx UNTAGGED EVENT {event_dict}")
+                #     print(f"xx UNTAGGED EVENT {event_dict}", flush=True)
 
                 # ---------------------------------------------------------
                 # 1. USER INPUT PRINT LOGIC
