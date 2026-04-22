@@ -204,9 +204,10 @@ async def websocket_endpoint(
                         event_type = f"MODEL TRANSCRIPTION {event.input_transcription} IS_PARTIAL {event.partial} TURN_COMPLETE {event.turn_complete}"
                     for part in event.content.parts:
                         if part.function_call:
-                            event_type = f"MODEL FUNCTION CALL {part.function_call.name} ARGS {part.function_call.args}"
+                            event_type = f"MODEL FUNCTION CALL {part.function_call.name} INPUT PARAMS {part.function_call.args}"
                         elif part.function_response:
-                            event_type = f"USER FUNCTION CALL RESPONSE {part.function_response.name} ARGS {part.function_response.args}"                    
+                            print(event_dict)
+                            event_type = f"USER FUNCTION CALL RESPONSE {part.function_response.name} OUTPUT PARAMS {part.function_response.responses}"                    
                         
                 print(f"\n++++++++{event_type}++++++++\n", flush=True)
 
