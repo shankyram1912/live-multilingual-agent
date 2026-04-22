@@ -210,10 +210,10 @@ async def websocket_endpoint(
                         elif part.function_response:
                             event_type = f"USER FUNCTION CALL RESPONSE {part.function_response.name} OUTPUT PARAMS {part.function_response.response}"                    
                     
-                    if event_type:
-                        print(f"++ {event_type}", flush=True)
-                    else:
-                        print(f"xx {event_dict}")
+                if event_type:
+                    print(f"++ {event_type}", flush=True)
+                else:
+                    print(f"xx {event_dict}")
 
                 # ---------------------------------------------------------
                 # 1. USER INPUT PRINT LOGIC
