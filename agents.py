@@ -8,5 +8,5 @@ despina_agent = LlmAgent(
     name="Despina",
     model=config.ORCHESTRATOR_MODEL,
     instruction=config.DESPINA_INSTRUCTION,
-    tools=[travel_risk_assessment]  # Wrapper tools for subagents
+    tools=[travel_risk_assessment]  # Tool
 )

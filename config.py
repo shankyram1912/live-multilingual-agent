@@ -3,9 +3,6 @@ import os
 # Model Configurations
 ORCHESTRATOR_MODEL = "gemini-live-2.5-flash-native-audio"
 
-# For future use
-# SUBAGENT_MODEL = "gemini-2.5-flash"
-
 # App Configuration
 APP_NAME = "despina_multilingual_agent"
 
@@ -34,16 +31,3 @@ Tool: travel_risk_assessment
 * Immediate Delivery: The moment a tool returns information, answer the user's question directly with that data. Do NOT wait for the user to prompt you again.
 </guardrails>
 """
-
-# REFERENCE CODE FOR FUTURE MULTI AGENT IMPL
-# FLIGHT_SPECIALIST_INSTRUCTION = """You are a flight specialist agent.
-# You handle all flight-related queries including availability, prices, and airlines.
-# Use your flight database to provide accurate information.
-# Keep responses concise and focused on flight information.
-# Format your responses with clear flight details."""
-
-# LIFESTYLE_SPECIALIST_INSTRUCTION = """You are a lifestyle and travel research specialist.
-# You handle queries about destinations, events, weather, and local activities.
-# Use the google_search tool to find current information.
-# Keep responses concise and informative.
-# Focus on practical travel information."""

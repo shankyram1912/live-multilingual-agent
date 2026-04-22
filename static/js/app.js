@@ -211,6 +211,20 @@ async function connectWebsocket() {
             return; // Fail gracefully
         }
 
+        // // 1. Handle custom wrapper messages from backend
+        // if (adkEvent.type === "transcript") {
+        //     if (adkEvent.role === "user") {
+        //         transcriptUser.innerText = `"${adkEvent.text}"`;
+        //     } else if (adkEvent.role === "ai") {
+        //         transcriptAi.innerText = adkEvent.text;
+        //     }
+        //     return; // Safe to return here because custom messages don't contain audio or ADK state flags
+        // }
+
+        // ==========================================
+        // EXTRACT DATA FIRST
+        // ==========================================
+
         // -- User transcription --
         if (adkEvent.inputTranscription && adkEvent.inputTranscription.text) {
             let text = cleanCJKSpaces(adkEvent.inputTranscription.text);
