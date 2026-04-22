@@ -1,13 +1,20 @@
 import json
+import logging
+
+logger = logging.getLogger(__name__)
 
 def travel_risk_assessment(country_code: str) -> str:
     """
-    Retrieves the current travel advisory assessment and safety description for a given country.
-    Call this tool whenever the user discusses traveling to, visiting, or planning a trip to a specific country.
+    Retrieves the current travel advisory assessment and safety description for a given country only if the user specifically asks for information related to it.
+    Call this tool whenever the user discusses safety or travel advisories while planning a trip to a specific country.
     
     Args:
         country_code: The 2-letter ISO 3166-1 alpha-2 country code (e.g., 'JP', 'FR', 'BR').
     """
+    
+    print("\n" + "="*50)
+    print(f"🛠️ TOOL CALL STARTING: travel_risk_assessment - {country_code}")
+    print("="*50 + "\n", flush=True)
     
     # Clean the input to ensure it matches the index keys
     code = country_code.strip().upper()
@@ -55,10 +62,16 @@ def travel_risk_assessment(country_code: str) -> str:
     if code in advisories:
         result = advisories[code]
         result["country_code"] = code
-        return json.dumps(result)
+        result = json.dumps(result)
     else:
-        return json.dumps({
+        result = json.dumps({
             "country_code": code,
             "level": "No Information Available",
             "description": "Please advise the user to check their local government travel website."
         })
+        
+    print("\n" + "="*50)
+    print(f"🛠️ TOOL CALL FINSHED: Tool Response - {result}")    
+    print("="*50 + "\n", flush=True)
+    
+    return result
