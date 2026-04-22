@@ -189,65 +189,49 @@ async def websocket_endpoint(
             ):
                 event_json = event.model_dump_json(exclude_none=True, by_alias=True)
                 event_dict = json.loads(event_json)
-
-                # ---------------------------------------------------------
-                # 1. USER INPUT PRINT LOGIC
-                # ---------------------------------------------------------
-                if "inputTranscription" in event_dict:
-                    input_transcription = event_dict["inputTranscription"]
-                    current_text = input_transcription.get("text", "")
+                
+                event_type = None
+                is_audio_stream = False
+                
+                if event.content and event.content.parts:
+                    part = event.content.parts[0]
                     
-                    if input_transcription.get("finished", False):
-                        print("\n" + "-"*50)
-                        print(f"🗣️ USER FINISHED: {current_text}")
-                        print("-" *50 + "\n", flush=True)
-                        last_user_text = "" 
+                    if part.inline_data:
+                        event_type = f"AUDIO {part.inline_data.mime_type} Received {len(part.inline_data.data)} bytes"
+                    elif part.text:
+                        event_type = f"TEXT {part.text} IS_PARTIAL {event.partial} TURN_COMPLETE {event.turn_complete}"
+                    for part in event.content.parts:
+                        if part.function_call:
+                            event_type = f"MODEL FUNCTION CALL {part.function_call.name} INPUT PARAMS {part.function_call.args}"
+                        elif part.function_response:
+                            event_type = f"USER FUNCTION CALL RESPONSE {part.function_response.name} OUTPUT PARAMS {part.function_response.response}"                        
                         
-                        # await websocket.send_text(json.dumps({
-                        #     "type": "transcript",
-                        #     "role": "user",
-                        #     "text": current_text
-                        # }))
-                        
-                    elif current_text and current_text != last_user_text:
-                        print(f"**** 🗣️ USER TALKING: {current_text}", flush=True)
-                        last_user_text = current_text
-
-                # ---------------------------------------------------------
-                # 2. AI RESPONSE PRINT LOGIC (Accumulation Fix)
-                # ---------------------------------------------------------
-                if "outputTranscription" in event_dict:
-                    output_transcription = event_dict["outputTranscription"]
-                    chunk_text = output_transcription.get("text", "")
+                if event.input_transcription:
+                    event_type = f"🗣️ USER TALKING: {event.input_transcription.text} IS_FINISHED {event.input_transcription.finished} IS_PARTIAL {event.partial} TURN_COMPLETE {event.turn_complete}"                        
+                elif event.output_transcription:
+                    event_type = f"🤖 AI AGENT TALKING: {event.output_transcription.text} IS_FINISHED {event.output_transcription.finished} IS_PARTIAL {event.partial} TURN_COMPLETE {event.turn_complete}"                        
                     
-                    if output_transcription.get("finished", False):
-                        # For the final event, the API usually sends the complete sentence
-                        # OR we fall back to our joined buffer if it's empty
-                        final_text = chunk_text if chunk_text else "".join(ai_text_buffer)
+                # Uncomment for event logging
+                # if event_type:
+                #     print(f"++ {event_type}", flush=True)
+                # else:
+                #     print(f"xx UNTAGGED EVENT {event_dict}", flush=True)
+                
+                if event.input_transcription and event.input_transcription.finished:
+                    print("\n" + "-"*50)
+                    print(f"🗣️ USER FINISHED: {event.input_transcription.text}")
+                    print("-" *50 + "\n", flush=True)                        
+                elif event.output_transcription and event.output_transcription.finished:
+                    print("\n" + "="*50)
+                    print(f"🤖 AI AGENT FINISHED: {event.output_transcription.text}")
+                    print("="*50 + "\n", flush=True)                 
                         
-                        print("\n" + "="*50)
-                        print(f"🤖 AI AGENT FINISHED: {final_text}")
-                        print("="*50 + "\n", flush=True)
-                        
-                        # Clear the buffer for the next time the AI speaks
-                        ai_text_buffer = [] 
-                        
-                        # await websocket.send_text(json.dumps({
-                        #     "type": "transcript",
-                        #     "role": "ai",
-                        #     "text": final_text
-                        # }))
-                        
-                    elif chunk_text:
-                        # It's a partial chunk. Append the new word to our buffer
-                        ai_text_buffer.append(chunk_text)
-                        
-                        # Join the buffer to see the sentence currently built
-                        current_sentence = "".join(ai_text_buffer)
-                        print(f"**** 🤖 AI AGENT TALKING: {current_sentence}", flush=True)
-                        
-                # Always forward the raw event to the frontend (for audio)
-                await websocket.send_text(event_json)
+                # Always forward the raw event to the frontend (for audio), everything else is JSON
+                if hasattr(part, 'inline_data') and part.inline_data:
+                    if hasattr(part.inline_data, 'data') and part.inline_data.data:
+                        await websocket.send_bytes(part.inline_data.data)
+                else:                
+                    await websocket.send_text(event_json)
 
     # ========================================
     # Run the Concurrent Tasks
