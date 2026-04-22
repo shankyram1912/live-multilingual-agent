@@ -190,8 +190,6 @@ async def websocket_endpoint(
                 event_json = event.model_dump_json(exclude_none=True, by_alias=True)
                 event_dict = json.loads(event_json)
                 
-                print(f"xx UNTAGGED EVENT {event_dict}", flush=True)
-                
                 event_type = None
                 
                 if event.content and event.content.parts:
