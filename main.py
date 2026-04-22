@@ -191,6 +191,7 @@ async def websocket_endpoint(
                 event_dict = json.loads(event_json)
                 
                 event_type = None
+                is_audio_stream = False
                 
                 if event.content and event.content.parts:
                     part = event.content.parts[0]
@@ -211,8 +212,8 @@ async def websocket_endpoint(
                     event_type = f"🤖 AI AGENT TALKING: {event.output_transcription.text} IS_FINISHED {event.output_transcription.finished} IS_PARTIAL {event.partial} TURN_COMPLETE {event.turn_complete}"                        
                     
                 # Uncomment for event logging
-                if event_type:
-                    print(f"++ {event_type}", flush=True)
+                # if event_type:
+                #     print(f"++ {event_type}", flush=True)
                 # else:
                 #     print(f"xx UNTAGGED EVENT {event_dict}", flush=True)
                 
@@ -225,8 +226,12 @@ async def websocket_endpoint(
                     print(f"🤖 AI AGENT FINISHED: {event.output_transcription.text}")
                     print("="*50 + "\n", flush=True)                 
                         
-                # Always forward the raw event to the frontend (for audio)
-                await websocket.send_text(event_json)
+                # Always forward the raw event to the frontend (for audio), everything else is JSON
+                if hasattr(part, 'inline_data') and part.inline_data:
+                    if hasattr(part.inline_data, 'data') and part.inline_data.data:
+                        await websocket.send_bytes(part.inline_data.data)
+                else:                
+                    await websocket.send_text(event_json)
 
     # ========================================
     # Run the Concurrent Tasks
