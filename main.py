@@ -189,6 +189,8 @@ async def websocket_endpoint(
             ):
                 event_json = event.model_dump_json(exclude_none=True, by_alias=True)
                 event_dict = json.loads(event_json)
+                
+                print(f"\n++++++++{event_json}++++++++\n", flush=True)
 
                 # ---------------------------------------------------------
                 # 1. USER INPUT PRINT LOGIC
