@@ -212,6 +212,8 @@ async def websocket_endpoint(
                     
                     if event_type:
                         print(f"++ {event_type}", flush=True)
+                    else:
+                        print(f"xx {event_dict}")
 
                 # ---------------------------------------------------------
                 # 1. USER INPUT PRINT LOGIC
