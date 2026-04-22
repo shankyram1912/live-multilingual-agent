@@ -217,7 +217,7 @@ async def websocket_endpoint(
                         event_type = f"🤖 AI AGENT TALKING: {event.output_transcription} IS_PARTIAL {event.partial} TURN_COMPLETE {event.turn_complete}"                                    
                     else:
                         print("\n" + "="*50)
-                        print(f"🤖 AI AGENT FINISHED: {final_text}")
+                        print(f"🤖 AI AGENT FINISHED: {event.output_transcription}")
                         print("="*50 + "\n", flush=True)                        
                     
                 if event_type:
