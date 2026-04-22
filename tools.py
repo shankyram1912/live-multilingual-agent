@@ -31,6 +31,7 @@ def travel_risk_assessment(country_code: str) -> str:
         "NO": {"level": "VERY SAFE", "description": "Excellent safety record. Exercise standard precautions and be prepared for extreme weather in northern regions."},
         "IE": {"level": "VERY SAFE", "description": "Generally very safe. Travelers should exercise normal precautions against petty theft in crowded areas of Dublin."},
         "AT": {"level": "VERY SAFE", "description": "High levels of safety and security. Occasional petty crime in major cities is the primary concern."},
+        "TH": {"level": "VERY SAFE", "description": "Super fun, great for tourists and travellers. Be prepared for hot climate conditions in summer and a good amount of rain during wet season"},        
 
         # --- MOSTLY SAFE ---
         "US": {"level": "MOSTLY SAFE", "description": "Generally safe for travel. Exercise increased caution due to varying levels of crime across different states and major urban centers."},
@@ -53,7 +54,6 @@ def travel_risk_assessment(country_code: str) -> str:
         "EG": {"level": "LESS SAFE", "description": "Exercise increased caution due to terrorism. Stick to major tourist areas and follow guidance from local security authorities."},
         "PH": {"level": "LESS SAFE", "description": "Exercise increased caution due to crime, terrorism, and civil unrest. Specific southern regions carry extreme risk; major tourist islands are generally safer but require vigilance."},
         "TR": {"level": "LESS SAFE", "description": "Exercise increased caution due to terrorism and arbitrary detentions. Avoid areas near the Syrian border."},
-        "TH": {"level": "LESS SAFE", "description": "Exercise increased caution due to political instability and occasional violence. Be extremely wary of traffic accidents and common tourist scams."},
         "IN": {"level": "LESS SAFE", "description": "Exercise increased caution due to crime and terrorism. Women should exercise heightened vigilance due to specific safety concerns. Traffic conditions are hazardous."}
     }
 
