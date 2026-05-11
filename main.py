@@ -10,7 +10,9 @@ import warnings
 import config
 import uvicorn
 
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+from typing import Optional
+
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Request
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
@@ -20,6 +22,7 @@ from google.adk.agents.run_config import RunConfig, StreamingMode
 from google.adk.runners import Runner
 from google.adk.sessions import InMemorySessionService
 from google.genai import types
+from google.genai.types import ProactivityConfig
 
 from agents import despina_agent
 
@@ -56,6 +59,21 @@ app.add_middleware(
 static_dir = Path(__file__).parent / "static"
 app.mount("/live-multilingual-agent/static", StaticFiles(directory=static_dir), name="static")
 
+# Define the headers once to keep things clean
+NO_CACHE_HEADERS = {
+    "Cache-Control": "no-cache, no-store, must-revalidate",
+    "Pragma": "no-cache",
+    "Expires": "0",
+}
+
+@app.middleware("http")
+async def add_cache_control_header(request: Request, call_next):
+    response = await call_next(request)
+    # Target only the images inside the static camview directory
+    if request.url.path.endswith(".js"):
+        response.headers.update(NO_CACHE_HEADERS)
+    return response
+
 # ========================================
 # Front End Endpoints
 # ========================================
@@ -63,7 +81,7 @@ app.mount("/live-multilingual-agent/static", StaticFiles(directory=static_dir), 
 @app.get("/live-multilingual-agent")
 async def root():
     """Serve the index.html page."""
-    return FileResponse(Path(__file__).parent / "static" / "index.html")
+    return FileResponse(Path(__file__).parent / "static" / "index.html", headers=NO_CACHE_HEADERS)
 
 
 # ========================================
@@ -74,7 +92,10 @@ async def root():
 async def websocket_endpoint(
     websocket: WebSocket,
     user_id: str,
-    session_id: str
+    session_id: str,
+    voice: Optional[str] = "aoede",              # Defaults to 'aoede'
+    affective_dialog: Optional[bool] = False,    # Auto-converts "true" to True
+    proactive_audio: Optional[bool] = False      # Auto-converts "false" to False    
 ) -> None:    
     
     logger.info(
@@ -82,6 +103,7 @@ async def websocket_endpoint(
     )    
     await websocket.accept()
     logger.info("WebSocket connection accepted")
+    logger.info(f"Settings - Voice: {voice}, Affective: {affective_dialog}, Proactive: {proactive_audio}")
 
     # Get or create session
     session = await session_service.get_session(
@@ -97,8 +119,6 @@ async def websocket_endpoint(
     # ========================================
 
     response_modalities = ["AUDIO"]
-    proactivity = None
-    affective_dialog = None
         
     run_config = RunConfig(
         streaming_mode=StreamingMode.BIDI,
@@ -106,7 +126,7 @@ async def websocket_endpoint(
         speech_config=types.SpeechConfig(
             voice_config=types.VoiceConfig(
                 prebuilt_voice_config=types.PrebuiltVoiceConfig(
-                    voice_name="Despina" # Change to Aoede, Kore, Charon, or Fenrir
+                    voice_name=voice
                 )
             )
         ),            
@@ -114,11 +134,8 @@ async def websocket_endpoint(
         output_audio_transcription=types.AudioTranscriptionConfig(),
         # Note session resumption only works for Vertex AI, not Gemini API
         session_resumption=types.SessionResumptionConfig(),
-        proactivity=(
-            types.ProactivityConfig(proactive_audio=True)
-            if proactivity else None
-        ),
-        enable_affective_dialog=affective_dialog if affective_dialog else None,
+        proactivity=ProactivityConfig(proactive_audio=proactive_audio),
+        enable_affective_dialog=affective_dialog
     )
 
     live_request_queue = LiveRequestQueue()
@@ -144,18 +161,23 @@ async def websocket_endpoint(
                     audio_blob = types.Blob(
                         mime_type="audio/pcm;rate=16000", data=message["bytes"]
                     )
+                    logger.debug("Frontend sent AUDIO.")
                     live_request_queue.send_realtime(audio_blob)
 
                 elif "text" in message:
                     json_message = json.loads(message["text"])
+                    
+                    logger.info(f"Frontend sent TEXT - {json_message}")
 
                     if json_message.get("type") == "text":
                         content = types.Content(
                             parts=[types.Part(text=json_message["text"])]
                         )
-                        live_request_queue.send_realtime(content) # Note: changed send_content to send_realtime for text in bidi
+                        #live_request_queue.send_realtime(content) # Note: changed send_content to send_realtime for text in bidi
+                        live_request_queue.send_content(content)
 
                     elif json_message.get("type") == "image":
+                        logger.info(f"Frontend sent IMAGE")
                         image_data = base64.b64decode(json_message["data"])
                         mime_type = json_message.get("mimeType", "image/jpeg")
                         image_blob = types.Blob(
@@ -212,8 +234,8 @@ async def websocket_endpoint(
                     event_type = f"🤖 AI AGENT TALKING: {event.output_transcription.text} IS_FINISHED {event.output_transcription.finished} IS_PARTIAL {event.partial} TURN_COMPLETE {event.turn_complete}"                        
                     
                 # Uncomment for event logging
-                # if event_type:
-                #     print(f"++ {event_type}", flush=True)
+                #if event_type:
+                #    print(f"++ {event_type}", flush=True)
                 # else:
                 #     print(f"xx UNTAGGED EVENT {event_dict}", flush=True)
                 
@@ -232,8 +254,13 @@ async def websocket_endpoint(
                     if part.inline_data:                                                
                         if hasattr(part, 'inline_data') and part.inline_data:
                             if hasattr(part.inline_data, 'data') and part.inline_data.data:
+                                logger.debug(f"### SENDING AUDIO RESPONSE TO FRONTEND")                                
                                 await websocket.send_bytes(part.inline_data.data)
+                    else:                
+                        logger.info(f"### RESPONSE TO FRONTEND - {event_json}")
+                        await websocket.send_text(event_json)                    
                 else:                
+                    logger.info(f"### RESPONSE TO FRONTEND - {event_json}")
                     await websocket.send_text(event_json)
 
     # ========================================
