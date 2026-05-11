@@ -17,6 +17,7 @@ class AgentConfig:
             os.environ.pop("GOOGLE_GENAI_USE_VERTEXAI", None)
             os.environ.pop("GOOGLE_CLOUD_PROJECT", None)
             os.environ.pop("GOOGLE_CLOUD_LOCATION", None)
+            os.environ.pop("GOOGLE_API_KEY", None)
 
             # 2. Patch ADK to use v1beta for Gemini API live connections for 3.1 Flash.
             # ADK (as of 1.32.0) still defaults `_live_api_version` to "v1alpha" for AI Studio, 
