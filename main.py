@@ -148,7 +148,7 @@ async def websocket_endpoint(
         output_audio_transcription=types.AudioTranscriptionConfig(),
         # Note session resumption only works for Vertex AI, not Gemini API
         session_resumption=types.SessionResumptionConfig(),
-        proactivity=ProactivityConfig(proactive_audio=proactive_audio),
+        # proactivity=ProactivityConfig(proactive_audio=proactive_audio),
         # enable_affective_dialog=affective_dialog
     )
 
