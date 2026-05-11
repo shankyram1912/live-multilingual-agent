@@ -16,6 +16,8 @@ from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Request
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi import HTTPException
+from fastapi.concurrency import run_in_threadpool
 
 from google.adk.agents.live_request_queue import LiveRequestQueue
 from google.adk.agents.run_config import RunConfig, StreamingMode
@@ -24,7 +26,7 @@ from google.adk.sessions import InMemorySessionService
 from google.genai import types
 from google.genai.types import ProactivityConfig
 
-from agents import despina_agent
+from agents import get_despina_agent
 
 # Configure logging
 logging.basicConfig(
@@ -43,8 +45,6 @@ app_name = config.APP_NAME
 
 app = FastAPI(title="Despina: The Multi Lingual Agent")
 session_service = InMemorySessionService()
-agent = despina_agent
-runner = Runner(app_name=app_name, agent=agent, session_service=session_service)
 
 # CORS configuration
 app.add_middleware(
@@ -105,6 +105,18 @@ async def websocket_endpoint(
     logger.info("WebSocket connection accepted")
     logger.info(f"Settings - Voice: {voice}, Affective: {affective_dialog}, Proactive: {proactive_audio}")
 
+    # Fetch Agent Dynamically (Run in Threadpool so we don't block the event loop)
+    try:
+        agent = await run_in_threadpool(get_aris_agent)
+        logger.info(f"Successfully loaded agent profile for ARIS")
+    except Exception as e:
+        logger.error(f"Failed to load agent ARIS: {e}")
+        await websocket.close(code=1008, reason=f"Agent load failed: {str(e)}")
+        return
+
+    # Initialize a localized Runner for this specific connection
+    runner = Runner(app_name=app_name, agent=agent, session_service=session_service)
+
     # Get or create session
     session = await session_service.get_session(
         app_name=app_name, user_id=user_id, session_id=session_id
@@ -151,7 +163,7 @@ async def websocket_endpoint(
             try:
                 message = await websocket.receive()
 
-                # NEW: Cleanly break the loop if the frontend sends a disconnect signal
+                # Cleanly break the loop if the frontend sends a disconnect signal
                 if message.get("type") == "websocket.disconnect":
                     logger.info("Frontend explicitly closed the connection. Stopping upstream task.")
                     live_request_queue.close()
@@ -173,7 +185,6 @@ async def websocket_endpoint(
                         content = types.Content(
                             parts=[types.Part(text=json_message["text"])]
                         )
-                        #live_request_queue.send_realtime(content) # Note: changed send_content to send_realtime for text in bidi
                         live_request_queue.send_content(content)
 
                     elif json_message.get("type") == "image":
@@ -198,10 +209,6 @@ async def websocket_endpoint(
     async def downstream_task() -> None:
             """Receives Events from run_live() and sends to WebSocket."""
             logger.info("downstream_task started")
-            
-            last_user_text = ""
-            # We now use a list to accumulate the AI's word chunks
-            ai_text_buffer = [] 
 
             async for event in runner.run_live(
                 user_id=user_id,
@@ -239,6 +246,7 @@ async def websocket_endpoint(
                 # else:
                 #     print(f"xx UNTAGGED EVENT {event_dict}", flush=True)
                 
+                
                 if event.input_transcription and event.input_transcription.finished:
                     print("\n" + "-"*50)
                     print(f"🗣️ USER FINISHED: {event.input_transcription.text}")
@@ -271,10 +279,11 @@ async def websocket_endpoint(
         await asyncio.gather(
             upstream_task(), 
             downstream_task(),
-            # silence_monitor_task()
         )
     except WebSocketDisconnect:
         logger.info("Client disconnected normally")
+    except asyncio.CancelledError:
+        logger.info("Server shutting down. Cancelling active WebSocket tasks...")        
     except Exception as e:
         logger.error(f"Unexpected error: {e}", exc_info=True)
     finally:
