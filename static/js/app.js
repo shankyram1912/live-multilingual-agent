@@ -176,8 +176,21 @@ async function connectWebsocket() {
     }
 
     // 2. Connect to ADK FastAPI WebSocket Route
+    
+    // Get settings from the UI
+    const voice = document.getElementById('voice-select').value;
+    const affectiveDialog = document.getElementById('affective-toggle').classList.contains('active');
+    const proactiveAudio = document.getElementById('proactive-toggle').classList.contains('active');
+
+    // Build query parameters safely
+    const params = new URLSearchParams({
+        voice: voice,
+        affective_dialog: affectiveDialog,
+        proactive_audio: proactiveAudio
+    });
+
     const wsProtocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-    const wsUrl = `${wsProtocol}//${window.location.host}/live-multilingual-agent/ws/${userId}/${sessionId}`;
+    const wsUrl = `${wsProtocol}//${window.location.host}/live-multilingual-agent/ws/${userId}/${sessionId}?${params.toString()}`;
     websocket = new WebSocket(wsUrl);
 
     // Force binary messages to be ArrayBuffers, not Blobs, to receive audio stream directly. Does not affect Text Frames, only Binary Frames at the network protocol level.
@@ -249,7 +262,41 @@ async function connectWebsocket() {
             } else {
                 transcriptAi.innerText += aiText;
             }
-        }        
+        }
+
+        // 1. Safely check if the event contains 'content' and 'parts'
+        if (adkEvent.content?.parts) {
+            
+            // 2. Loop through the parts (Gemini can sometimes return multiple tool calls in one event)
+            adkEvent.content.parts.forEach((part, index) => {
+                
+                // 3A. Check if this part is a function call
+                if (part.functionCall) {
+                    // Define tools for logging
+                    const logTools = [
+                        "travel_risk_assessment"                       
+                    ];
+                    // Log tool call requests
+                    if (logTools.includes(part.functionCall.name)) {
+                        window.logToolUse(part.functionCall.name, true, part.functionCall.args || {});
+                    }
+                                        
+                }
+
+                // 3B. Check if this part is a function response
+                if (part.functionResponse) {
+                    
+                    // Define tools for logging
+                    const logTools = [
+                        "travel_risk_assessment"                      
+                    ];
+                    // Log tool call requests
+                    if (logTools.includes(part.functionResponse.name)) {
+                        window.logToolUse(part.functionResponse.name, false, part.functionResponse.response || {});
+                    }
+                }
+            });
+        }
 
         // -- Audio playback --
         if (adkEvent.content && adkEvent.content.parts) {

@@ -10,10 +10,18 @@
     <style>
         /* --- PREMIUM DESIGN SYSTEM --- */
         :root {
-            --bg-base: #000000; --panel-bg: rgba(24, 24, 26, 0.5); --panel-border: rgba(255, 255, 255, 0.08);
-            --panel-highlight: inset 0 1px 1px rgba(255, 255, 255, 0.15); --text-primary: #F5F5F7;
-            --text-secondary: #A1A1A6; --text-tertiary: #7A7A80; --apple-green: #30D158;
-            --apple-red: #FF453A; --glass-blur: blur(60px); --font-family: 'Inter', sans-serif;
+            --bg-base: #000000; 
+            --panel-bg: rgba(24, 24, 26, 0.5); 
+            --panel-border: rgba(255, 255, 255, 0.08);
+            --panel-highlight: inset 0 1px 1px rgba(255, 255, 255, 0.15); 
+            --text-primary: #F5F5F7;
+            --text-secondary: #A1A1A6; 
+            --text-tertiary: #7A7A80; 
+            --apple-green: #30D158;
+            --apple-red: #FF453A; 
+            --glass-blur: blur(60px); 
+            --font-family: 'Inter', sans-serif;
+            --mono: 'SF Mono', 'Fira Code', monospace;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: var(--font-family); -webkit-font-smoothing: antialiased; }
@@ -22,12 +30,250 @@
         body::before { content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: radial-gradient(circle at 40% 60%, rgba(10, 132, 255, 0.06) 0%, transparent 40%), radial-gradient(circle at 70% 30%, rgba(191, 90, 242, 0.04) 0%, transparent 30%), radial-gradient(circle at 20% 80%, rgba(48, 209, 88, 0.03) 0%, transparent 40%); animation: ambient-shift 25s ease-in-out infinite alternate; z-index: -1; }
         @keyframes ambient-shift { 0% { transform: translate(0, 0) scale(1); } 100% { transform: translate(-3%, -3%) scale(1.05); } }
 
-        /* 2-Panel Layout */
-        #dashboard { display: grid; grid-template-columns: 360px 1fr; gap: 32px; width: 100%; max-width: 1400px; height: 100%; max-height: 800px; }
+        /* 2-Panel Layout modified to Flexbox for smooth expansion */
+        #dashboard { 
+            display: flex; 
+            gap: 32px; 
+            width: 100%; 
+            max-width: 1400px; 
+            height: 100%; 
+            max-height: 800px; 
+            transition: max-width 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        #dashboard.settings-open {
+            max-width: 1682px; /* 1400 + 250 (panel) + 32 (gap) */
+        }
+
         .glass-panel { background: var(--panel-bg); backdrop-filter: var(--glass-blur); border: 1px solid var(--panel-border); box-shadow: 0 30px 60px rgba(0, 0, 0, 0.5), var(--panel-highlight); border-radius: 40px; display: flex; flex-direction: column; overflow: hidden; position: relative; }
 
+        /* --- SETTINGS PANEL --- */
+        #settings-panel {
+            width: 0;
+            opacity: 0;
+            overflow: hidden;
+            flex-shrink: 0;
+            transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+            margin-right: -32px; 
+            padding: 0;
+            border: none;
+            display: flex;
+            flex-direction: column;
+            background: var(--panel-bg);
+            backdrop-filter: var(--glass-blur);
+            -webkit-backdrop-filter: var(--glass-blur);
+            border-radius: 40px;
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.5), var(--panel-highlight);
+        }
+
+        #settings-panel.open {
+            width: 250px;
+            opacity: 1;
+            margin-right: 0;
+            padding: 32px 20px;
+            border: 1px solid var(--panel-border);
+        }
+
+        .settings-header {
+            font-size: 20px;
+            font-weight: 700;
+            color: #FFFFFF;
+            margin-bottom: 32px;
+            letter-spacing: -0.5px;
+        }
+
+        .setting-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            gap: 4px;
+        }
+
+        .setting-label {
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        .toggle-switch {
+            width: 44px;
+            height: 24px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            position: relative;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .toggle-switch::after {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 20px;
+            height: 20px;
+            background: #FFFFFF;
+            border-radius: 50%;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .toggle-switch.active { background: var(--apple-green); }
+        .toggle-switch.active::after { transform: translateX(20px); }
+
+        .premium-dropdown {
+            background: rgba(255, 255, 255, 0.08) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23A1A1A6' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E") no-repeat right 10px center;
+            color: var(--text-primary);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 12px;
+            padding: 6px 30px 6px 12px;
+            font-size: 11px;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+            outline: none;
+            cursor: pointer;
+            appearance: none;
+            -webkit-appearance: none;
+            transition: all 0.2s ease;
+            box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.1);
+            max-width: 100%;
+        }
+
+        .premium-dropdown:hover {
+            background-color: rgba(255, 255, 255, 0.15);
+            border-color: rgba(255, 255, 255, 0.25);
+        }
+        .premium-dropdown option { background: #18181a; color: var(--text-primary); font-weight: 600; }
+
+        .settings-btn {
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 20;
+        }
+
+        .settings-btn:hover { color: #FFFFFF; transform: rotate(45deg); }
+        .settings-btn.active { color: #FFFFFF; transform: rotate(90deg); }
+        .settings-btn svg { width: 20px; height: 20px; }
+
+        /* --- TOOL LOG SECTION --- */
+        .tool-log-section {
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1;
+            min-height: 0;
+            margin-top: 0px; 
+            border-top: 1px solid rgba(255, 255, 255, 0.06);
+            padding-top: 16px;
+        }
+
+        .tool-log-header {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .clear-logs-btn {
+            background: rgba(255,255,255,0.1);
+            border: none;
+            border-radius: 8px;
+            color: var(--text-tertiary);
+            font-size: 10px;
+            font-weight: 700;
+            padding: 4px 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .clear-logs-btn:hover { color: #fff; background: rgba(255,255,255,0.2); }
+
+        #tool-log-container {
+            display: flex;
+            flex-direction: column;
+            gap: 6px; 
+            overflow-y: auto;
+            flex-grow: 1;
+            padding-right: 4px;
+            scrollbar-width: thin;
+        }
+
+        .tool-entry {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            padding: 6px 8px; 
+            border-radius: 8px;
+            font-size: 11px; 
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: all 0.3s ease;
+            animation: slide-in 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        /* Tool Colors */
+        .type-get_smart_home_devices_info { --tool-color: #A1A1A6; } 
+        .type-control_airconditioner { --tool-color: #0A84FF; } 
+        .type-control_camera { --tool-color: #BF5AF2; } 
+        .type-check_camera { --tool-color: #BF5AF2; } 
+        .type-control_light { --tool-color: #FF9F0A; } 
+        .type-control_lock { --tool-color: #FF453A; } 
+        .type-check_notifications { --tool-color: #64D2FF; } 
+        .type-find_people { --tool-color: #30D158; } 
+
+        .tool-entry.request { border-left: 2px solid var(--tool-color); margin-right: 8px; box-shadow: -6px 0 12px -8px var(--tool-color); }
+        .tool-entry.response { border-right: 2px solid var(--tool-color); margin-left: 8px; align-items: flex-end; text-align: right; background: rgba(255, 255, 255, 0.02); box-shadow: 6px 0 12px -8px var(--tool-color); }
+
+        .tool-meta { display: flex; align-items: center; gap: 4px; }
+        .tool-entry.response .tool-meta { flex-direction: row-reverse; }
+
+        .tool-badge {
+            font-size: 8px;
+            font-weight: 800;
+            padding: 2px 4px;
+            border-radius: 4px;
+            background: rgba(255,255,255,0.1);
+            color: var(--tool-color);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .tool-name { font-weight: 700; font-size: 10px; color: var(--text-primary); letter-spacing: -0.2px; }
+        .tool-payload {
+            font-family: var(--mono);
+            font-size: 9.5px;
+            line-height: 1.3;
+            color: var(--text-secondary);
+            background: rgba(0, 0, 0, 0.3);
+            padding: 6px;
+            border-radius: 6px;
+            width: 100%;
+            word-wrap: break-word;
+            white-space: pre-wrap;
+            border: 1px solid rgba(255, 255, 255, 0.03);
+            text-align: left; 
+        }       
+
+        .app-version {
+            margin-top: auto;
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            color: var(--text-tertiary);
+            padding-top: 24px;
+            border-top: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
         /* PANEL 1: AI CORE */
-        #voice-controller { justify-content: space-evenly; padding: 48px 40px; z-index: 10; }
+        #voice-controller { width: 360px; flex-shrink: 0; justify-content: space-evenly; padding: 48px 40px; z-index: 10; }
         .agent-header { display: flex; flex-direction: column; gap: 6px; text-align: center; }
         .agent-title { font-size: 26px; font-weight: 700; letter-spacing: -0.8px; color: #FFFFFF; }
         .agent-subtitle { font-size: 14px; font-weight: 500; color: var(--text-secondary); letter-spacing: -0.1px; }
@@ -47,32 +293,9 @@
         .state-speaking .orb { background: linear-gradient(135deg, #BF5AF2 10%, #FF375F 100%); box-shadow: inset 0 10px 20px rgba(255,255,255,0.4), 0 0 80px rgba(191, 90, 242, 0.8); animation: speak-wave 0.7s infinite alternate ease-in-out; }
         .state-speaking .orb::before { animation: ripple 1s infinite linear; }
 
-        /* --- NEW: THINKING STATE (Liquid Core + Nodes) --- */
-        .state-thinking .orb {
-            background: radial-gradient(circle at 50% 50%, #ffffff 0%, #d1d1d6 100%);
-            animation: think-wave 2s infinite alternate ease-in-out;
-        }
-        .state-thinking .orb::before {
-            inset: -20px;
-            background: transparent; 
-            border: 3px dotted rgba(255, 255, 255, 0.6);
-            border-radius: 50%;
-            mask-image: linear-gradient(to bottom, black 20%, transparent 80%);
-            -webkit-mask-image: linear-gradient(to bottom, black 20%, transparent 80%);
-            animation: spin-nodes 4s linear infinite;
-            opacity: 1;
-        }
-        .state-thinking .orb::after {
-            inset: -10px;
-            background: transparent; 
-            border: 2px solid transparent;
-            border-top: 3px solid #ffffff;
-            border-right: 3px solid rgba(255, 255, 255, 0.1);
-            box-shadow: 0 -10px 20px -5px rgba(255, 255, 255, 0.8);
-            border-radius: 50%;
-            animation: spin-synthesis 1.5s cubic-bezier(0.68, -0.55, 0.265, 1.55) infinite;
-            opacity: 1;
-        }
+        .state-thinking .orb { background: radial-gradient(circle at 50% 50%, #ffffff 0%, #d1d1d6 100%); animation: think-wave 2s infinite alternate ease-in-out; }
+        .state-thinking .orb::before { inset: -20px; background: transparent; border: 3px dotted rgba(255, 255, 255, 0.6); border-radius: 50%; mask-image: linear-gradient(to bottom, black 20%, transparent 80%); -webkit-mask-image: linear-gradient(to bottom, black 20%, transparent 80%); animation: spin-nodes 4s linear infinite; opacity: 1; }
+        .state-thinking .orb::after { inset: -10px; background: transparent; border: 2px solid transparent; border-top: 3px solid #ffffff; border-right: 3px solid rgba(255, 255, 255, 0.1); box-shadow: 0 -10px 20px -5px rgba(255, 255, 255, 0.8); border-radius: 50%; animation: spin-synthesis 1.5s cubic-bezier(0.68, -0.55, 0.265, 1.55) infinite; opacity: 1; }
 
         .mic-instruction { font-size: 12px; font-weight: 700; color: var(--text-secondary); letter-spacing: 1.5px; text-transform: uppercase; background: rgba(255, 255, 255, 0.04); padding: 10px 24px; border-radius: 30px; border: 1px solid rgba(255, 255, 255, 0.08); box-shadow: inset 0 1px 0 rgba(255,255,255,0.1); }
 
@@ -84,7 +307,7 @@
         .status-badge.active { background: rgba(48, 209, 88, 0.15); color: var(--apple-green); box-shadow: 0 0 15px rgba(48, 209, 88, 0.1); }
         .status-badge.active::before { content: ''; width: 8px; height: 8px; background: var(--apple-green); border-radius: 50%; box-shadow: 0 0 12px var(--apple-green); animation: blink 2s infinite ease-in-out; }
 
-        /* --- END CONVERSATION BUTTON --- */
+        /* END CONVERSATION BUTTON */
         .end-btn-container { display: flex; justify-content: center; margin-top: 16px; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; }
         .end-btn-container.visible { opacity: 1; pointer-events: auto; }
         .end-btn { background: rgba(255, 69, 58, 0.1); color: var(--apple-red); border: 1px solid rgba(255, 69, 58, 0.3); padding: 12px 32px; border-radius: 30px; font-size: 13px; font-weight: 700; cursor: pointer; text-transform: uppercase; letter-spacing: 1.5px; transition: all 0.2s ease; }
@@ -92,7 +315,7 @@
         .end-btn:active { transform: scale(0.98); }
         
         /* PANEL 2: TRANSCRIPT LAYER */
-        #transcript-panel { padding: 60px 80px; display: flex; flex-direction: column; justify-content: center; gap: 24px; position: relative; }
+        #transcript-panel { flex-grow: 1; padding: 60px 80px; display: flex; flex-direction: column; justify-content: center; gap: 24px; position: relative; }
         #transcript-panel::before { content: ''; position: absolute; left: 0; top: 25%; height: 50%; width: 6px; background: var(--text-tertiary); border-radius: 0 6px 6px 0; opacity: 0.3; }
         
         .user-text { color: var(--text-secondary); font-size: 24px; font-weight: 400; letter-spacing: -0.2px; font-style: italic; transition: opacity 0.5s ease;}
@@ -104,20 +327,120 @@
         @keyframes speak-wave { 0% { transform: scale(1.05); border-radius: 50%; } 50% { transform: scale(1.2); border-radius: 35% 65% 65% 35% / 35% 35% 65% 65%; } 100% { transform: scale(1.1); border-radius: 65% 35% 35% 65% / 65% 65% 35% 35%; } }
         @keyframes ripple { 0% { transform: scale(0.8); opacity: 0.5; } 100% { transform: scale(1.6); opacity: 0; } }
         @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
-        
-        /* --- NEW: THINKING ANIMATIONS --- */
-        @keyframes think-wave {
-            0% { transform: scale(0.98); border-radius: 50%; box-shadow: 0 0 20px rgba(255, 255, 255, 0.3), inset 0 0 10px #ffffff; }
-            50% { transform: scale(1.04); border-radius: 35% 65% 65% 35% / 35% 35% 65% 65%; box-shadow: 0 0 35px rgba(255, 255, 255, 0.6), inset 0 0 20px #ffffff; }
-            100% { transform: scale(1.01); border-radius: 65% 35% 35% 65% / 65% 65% 35% 35%; box-shadow: 0 0 50px rgba(255, 255, 255, 0.8), inset 0 0 30px #ffffff; }
-        }
+        @keyframes think-wave { 0% { transform: scale(0.98); border-radius: 50%; box-shadow: 0 0 20px rgba(255, 255, 255, 0.3), inset 0 0 10px #ffffff; } 50% { transform: scale(1.04); border-radius: 35% 65% 65% 35% / 35% 35% 65% 65%; box-shadow: 0 0 35px rgba(255, 255, 255, 0.6), inset 0 0 20px #ffffff; } 100% { transform: scale(1.01); border-radius: 65% 35% 35% 65% / 65% 65% 35% 35%; box-shadow: 0 0 50px rgba(255, 255, 255, 0.8), inset 0 0 30px #ffffff; } }
         @keyframes spin-nodes { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         @keyframes spin-synthesis { 0% { transform: rotate(0deg) scale(1); } 50% { transform: rotate(180deg) scale(1.05); border-top-width: 5px; } 100% { transform: rotate(360deg) scale(1); } }
+        @keyframes slide-in { 100% { transform: translateY(0) scale(1); opacity: 1; } }
+
+        /* SCROLLBAR */
+        ::-webkit-scrollbar { width: 16px; height: 16px; }
+        ::-webkit-scrollbar-track { background: transparent; margin-top: 10px; }
+        ::-webkit-scrollbar-thumb { background-color: rgba(255, 255, 255, 0.2); border-radius: 100px; border: 5px solid transparent; background-clip: padding-box; }
+        ::-webkit-scrollbar-thumb:hover { background-color: rgba(255, 255, 255, 0.4); border-width: 4px; }
+
+        /* MODAL SYSTEM */
+        .icon-btn-small { background: transparent; border: none; color: var(--text-tertiary); cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 4px; border-radius: 6px; transition: all 0.2s; }
+        .icon-btn-small:hover { color: #fff; background: rgba(255,255,255,0.1); }
+
+        .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); z-index: 9999; justify-content: center; align-items: center; opacity: 0; transition: opacity 0.3s ease; }
+        .modal-overlay.active { display: flex; opacity: 1; }
+        .modal-box { width: 80%; height: 80%; background: rgba(24, 24, 26, 0.85); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 24px; box-shadow: 0 40px 100px rgba(0, 0, 0, 0.8), inset 0 1px 1px rgba(255,255,255,0.15); display: flex; flex-direction: column; overflow: hidden; transform: scale(0.95); transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
+        .modal-overlay.active .modal-box { transform: scale(1); }
+
+        .modal-header { display: flex; justify-content: space-between; align-items: center; padding: 24px 32px; border-bottom: 1px solid rgba(255, 255, 255, 0.08); background: rgba(0,0,0,0.2); }
+        .modal-header h2 { font-size: 20px; font-weight: 700; letter-spacing: -0.5px; color: #fff; }
+
+        .close-modal-btn { background: rgba(255,255,255,0.1); border: none; width: 36px; height: 36px; border-radius: 18px; color: #fff; font-size: 22px; line-height: 1; cursor: pointer; display: flex; justify-content: center; align-items: center; transition: all 0.2s; }
+        .close-modal-btn:hover { background: rgba(255,69,58,0.2); color: var(--apple-red); transform: rotate(90deg); }
+
+        .modal-body { flex-grow: 1; padding: 32px; display: flex; flex-direction: column; overflow: hidden; }
+        
+        #tool-modal-overlay #tool-log-container { gap: 16px; padding-right: 16px; }
+        #tool-modal-overlay .tool-entry { padding: 16px 20px; border-radius: 16px; gap: 12px; }
+        #tool-modal-overlay .tool-entry.request { margin-right: 60px; border-left-width: 4px; }
+        #tool-modal-overlay .tool-entry.response { margin-left: 60px; border-right-width: 4px; }
+        #tool-modal-overlay .tool-badge { font-size: 12px; padding: 4px 8px; border-radius: 6px; }
+        #tool-modal-overlay .tool-name { font-size: 16px; }
+        #tool-modal-overlay .tool-payload { font-size: 14px; padding: 16px; border-radius: 10px; line-height: 1.5; }        
+
     </style>
 </head>
 <body>
 
     <div id="dashboard">
+        <!-- SETTINGS PANEL -->
+        <div id="settings-panel">
+            <div class="settings-header">Demo Settings</div>
+            <div class="setting-item">
+                <span class="setting-label">Voice</span>
+                <select class="premium-dropdown" id="voice-select">
+                    <option value="achernar">Achernar (Female)</option>
+                    <option value="achird">Achird (Male)</option>
+                    <option value="algenib">Algenib (Male)</option>
+                    <option value="algieba">Algieba (Male)</option>
+                    <option value="alnilam">Alnilam (Male)</option>
+                    <option value="aoede">Aoede (Female)</option>
+                    <option value="autonoe">Autonoe (Female)</option>
+                    <option value="callirrhoe">Callirrhoe (Female)</option>
+                    <option value="charon">Charon (Male)</option>
+                    <option value="despina" selected>Despina (Female)</option>
+                    <option value="enceladus">Enceladus (Male)</option>
+                    <option value="erinome">Erinome (Female)</option>
+                    <option value="fenrir">Fenrir (Male)</option>
+                    <option value="gacrux">Gacrux (Female)</option>
+                    <option value="iapetus">Iapetus (Male)</option>
+                    <option value="kore">Kore (Female)</option>
+                    <option value="laomedeia">Laomedeia (Female)</option>
+                    <option value="leda">Leda (Female)</option>
+                    <option value="orus">Orus (Male)</option>
+                    <option value="pulcherrima">Pulcherrima (Female)</option>
+                    <option value="puck">Puck (Male)</option>
+                    <option value="rasalgethi">Rasalgethi (Male)</option>
+                    <option value="sadachbia">Sadachbia (Male)</option>
+                    <option value="sadaltager">Sadaltager (Male)</option>
+                    <option value="schedar">Schedar (Male)</option>
+                    <option value="sulafat">Sulafat (Female)</option>
+                    <option value="umbriel">Umbriel (Male)</option>
+                    <option value="vindemiatrix">Vindemiatrix (Female)</option>
+                    <option value="zephyr">Zephyr (Female)</option>
+                    <option value="zubenelgenubi">Zubenelgenubi (Male)</option>
+                </select>
+            </div>            
+            <div class="setting-item">
+                <span class="setting-label">Affective Dialog</span>
+                <div class="toggle-switch" id="affective-toggle"></div>
+            </div>
+            <div class="setting-item">
+                <span class="setting-label">Proactive Audio</span>
+                <div class="toggle-switch active" id="proactive-toggle"></div>
+            </div>
+
+            <div class="tool-log-section">
+                <div class="tool-log-header">
+                    <span>Tool Activity</span>
+                    <div style="display: flex; gap: 8px; align-items: center;">
+                        <button class="icon-btn-small" id="expand-logs-btn" title="Expand Logs">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
+                                <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/>
+                            </svg>
+                        </button>
+                        <button class="clear-logs-btn" onclick="document.getElementById('tool-log-container').innerHTML = ''">CLEAR</button>
+                    </div>
+                </div>
+                <!-- SIDEBAR SLOT -->
+                <div id="sidebar-log-slot" style="display: flex; flex-direction: column; flex-grow: 1; min-height: 0;">
+                    <div id="tool-log-container">
+                        <!-- Logs dynamically injected here ONE time -->
+                    </div>
+                </div>
+            </div>            
+
+            <div class="app-version">
+                <span>App Version</span>
+                <span>v2.0</span>
+            </div>
+        </div>
+
         <!-- 1. LEFT PANEL -->
         <div class="glass-panel" id="voice-controller">
             <div class="agent-header">
@@ -135,11 +458,20 @@
 
             <div class="system-vitals">
                 <div class="vital-row">
-                    <span class="vital-label">Agent Status</span>
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <!-- SETTINGS BUTTON -->
+                        <div class="settings-btn" id="settings-btn">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="12" cy="12" r="3"></circle>
+                                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                            </svg>
+                        </div>
+                        <span class="vital-label">Agent Status</span>
+                    </div>
                     <span class="status-badge" id="socket-status">Offline</span>
                 </div>
 
-                <!-- NEW: End Conversation Button -->
+                <!-- End Conversation Button -->
                 <div class="end-btn-container" id="end-btn-container">
                     <button class="end-btn" id="end-btn">End Conversation</button>
                 </div>                
@@ -152,5 +484,133 @@
             <div class="ai-text" id="transcript-ai"></div>
         </div>
     </div>
+
+    <!-- TOOL LOG MODAL OVERLAY -->
+    <div id="tool-modal-overlay" class="modal-overlay">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h2>Tool Activity Logs</h2>
+                <button class="close-modal-btn" id="close-logs-btn">&times;</button>
+            </div>
+            <!-- MODAL SLOT -->
+            <div id="modal-log-slot" class="modal-body">
+                <!-- Log container gets MOVED here when opened -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const settingsBtn = document.getElementById('settings-btn');
+            const settingsPanel = document.getElementById('settings-panel');
+            const dashboard = document.getElementById('dashboard');
+            
+            if (settingsBtn && settingsPanel && dashboard) {
+                settingsBtn.addEventListener('click', () => {
+                    settingsPanel.classList.toggle('open');
+                    settingsBtn.classList.toggle('active');
+                    dashboard.classList.toggle('settings-open');
+                });
+            }
+
+            document.querySelectorAll('.toggle-switch').forEach(switchEl => {
+                switchEl.addEventListener('click', () => {
+                    switchEl.classList.toggle('active');
+                });
+            });
+        });
+
+        // --- TOOL LOGIC (Exposed for app.js) ---
+        const TOOL_LOG_CONFIG = {
+            MAX_ENTRIES: 50,
+            KNOWN_TOOLS: new Set([
+                'get_smart_home_devices_info', 'control_airconditioner', 
+                'control_camera', 'control_light', 'control_lock', 
+                'check_camera', 'check_notifications', 'find_people'
+            ])
+        };
+
+        function formatToolPayload(toolName, isRequest, rawPayload) {
+            if (rawPayload == null) return isRequest ? "{}" : "";
+            let parsed = rawPayload;
+            if (typeof rawPayload === 'string') {
+                try { parsed = JSON.parse(rawPayload); } catch (e) { }
+            }
+            if (toolName === 'get_smart_home_devices_info' && !isRequest) {
+                let yamlStr = "";
+                if (typeof parsed === 'object' && parsed !== null) {
+                    yamlStr = parsed.result || parsed?.response?.result || JSON.stringify(parsed, null, 2);
+                } else {
+                    yamlStr = String(parsed);
+                }
+                return yamlStr.replace(/\\n/g, '\n');
+            }
+            return typeof parsed === 'object' ? JSON.stringify(parsed, null, 2) : String(parsed);
+        }
+
+        window.logToolUse = function(toolName, isRequest, payload) {
+            const container = document.getElementById('tool-log-container');
+            if (!container) return;
+
+            const safeType = TOOL_LOG_CONFIG.KNOWN_TOOLS.has(toolName) ? toolName : 'get_smart_home_devices_info';
+            const reqClass = isRequest ? 'request' : 'response';
+            const badgeText = isRequest ? 'REQ' : 'RES';
+            const formattedPayload = formatToolPayload(toolName, isRequest, payload);
+
+            const logEl = document.createElement('div');
+            logEl.className = `tool-entry ${reqClass} type-${safeType}`;
+            
+            logEl.innerHTML = `
+                <div class="tool-meta">
+                    <span class="tool-badge">${badgeText}</span>
+                    <span class="tool-name"></span>
+                </div>
+                <div class="tool-payload"></div>
+            `;
+
+            logEl.querySelector('.tool-name').textContent = toolName;
+            logEl.querySelector('.tool-payload').textContent = formattedPayload;
+
+            container.appendChild(logEl);
+            while (container.children.length > TOOL_LOG_CONFIG.MAX_ENTRIES) {
+                container.removeChild(container.firstChild);
+            }
+            container.scrollTo({ top: container.scrollHeight, behavior: 'smooth' });
+        };
+
+        // --- TOOL MODAL EVENTS ---
+        function initToolModal() {
+            const expandBtn = document.getElementById('expand-logs-btn');
+            const closeBtn = document.getElementById('close-logs-btn');
+            const modalOverlay = document.getElementById('tool-modal-overlay');
+            const logContainer = document.getElementById('tool-log-container');
+            const sidebarSlot = document.getElementById('sidebar-log-slot');
+            const modalSlot = document.getElementById('modal-log-slot');
+
+            if (!expandBtn || !closeBtn || !modalOverlay || !logContainer || !sidebarSlot || !modalSlot) return;
+
+            expandBtn.addEventListener('click', () => {
+                modalSlot.appendChild(logContainer);
+                modalOverlay.style.display = 'flex';
+                setTimeout(() => modalOverlay.classList.add('active'), 10);
+                logContainer.scrollTo({ top: logContainer.scrollHeight });
+            });
+
+            closeBtn.addEventListener('click', () => {
+                modalOverlay.classList.remove('active');
+                setTimeout(() => {
+                    modalOverlay.style.display = 'none';
+                    sidebarSlot.appendChild(logContainer);
+                    logContainer.scrollTo({ top: logContainer.scrollHeight });
+                }, 300);
+            });
+            
+            modalOverlay.addEventListener('click', (e) => {
+                if (e.target === modalOverlay) closeBtn.click();
+            });
+        }
+        initToolModal();
+
+    </script>
 </body>
 </html>
