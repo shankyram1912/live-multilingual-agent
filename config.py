@@ -14,10 +14,7 @@ class AgentConfig:
     and Vertex AI models dynamically for the Live Translator.
     """
     def __init__(self):
-        use_gemini_env = os.getenv("LIVEAGENT_USE_GEMINI", "false").lower()
-        self.use_gemini = use_gemini_env in ("true", "1", "yes", "y")
-
-        if self.use_gemini:
+        if os.getenv("GOOGLE_GENAI_USE_VERTEXAI", "true").lower() == "false":
             
             logger.info("Need to route to GEMINI API (Google AI Studio).")
             
@@ -35,6 +32,8 @@ class AgentConfig:
                 "gemini-3.1-flash-live-preview"
             )            
             
+            self.IS_VERTEX_AI_LIVE_API = False
+            
         else:
             logger.info("Need to route to VERTEX AI API.")
             
@@ -42,6 +41,8 @@ class AgentConfig:
                 "LIVEAGENT_VERTEXAI_MODEL", 
                 "gemini-live-2.5-flash-native-audio"
             )
+            
+            self.IS_VERTEX_AI_LIVE_API = True
 
 # App Configuration
 APP_NAME = "despina_multilingual_agent"
