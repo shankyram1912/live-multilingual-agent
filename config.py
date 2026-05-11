@@ -6,8 +6,6 @@ import logging
 # Load environment variables early
 load_dotenv(override=True)
 
-logger = logging.getLogger(__name__)
-
 class AgentConfig:
     """
     Manages environment-based routing between Gemini AI Studio 
@@ -16,6 +14,7 @@ class AgentConfig:
     def __init__(self):
         use_gemini_env = os.getenv("LIVEAGENT_USE_GEMINI", "false").lower()
         self.use_gemini = use_gemini_env in ("true", "1", "yes", "y")
+        logger = logging.getLogger(__name__)
 
         if self.use_gemini:
             # 1. Sanitize the environment to force Google AI Studio API-Key routing
