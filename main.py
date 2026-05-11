@@ -26,9 +26,6 @@ from google.adk.sessions import InMemorySessionService
 from google.genai import types
 from google.genai.types import ProactivityConfig
 
-from agents import get_despina_agent
-from config import AgentConfig
-
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
@@ -38,6 +35,9 @@ logger = logging.getLogger(__name__)
 
 # Suppress Pydantic serialization warnings
 warnings.filterwarnings("ignore", category=UserWarning, module="pydantic")
+
+from config import AgentConfig
+from agents import get_despina_agent
 
 # Load environment variables first
 load_dotenv(override=True)
