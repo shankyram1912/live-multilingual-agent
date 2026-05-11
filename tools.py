@@ -77,7 +77,7 @@ class Tools:
             result = json.dumps({
                 "country_code": code,
                 "level": "No Information Available",
-                "description": "Please advise the user to check their local government travel website."
+                "description": "Please advise the user to check their local government websites for travel advisory recommendations."
             })
             
         print("\n" + "="*50)
