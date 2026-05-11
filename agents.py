@@ -64,7 +64,7 @@ def get_despina_agent() -> LlmAgent:
 
     return LlmAgent(
         name="Despina",
-        model=config.ORCHESTRATOR_MODEL,
+        model=config.agent_config.ORCHESTRATOR_MODEL,
         instruction=dynamic_instruction,
         tools=[toolInstance.travel_risk_assessment]  # Wrapper tools for subagents
     )

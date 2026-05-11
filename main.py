@@ -27,6 +27,7 @@ from google.genai import types
 from google.genai.types import ProactivityConfig
 
 from agents import get_despina_agent
+from config import AgentConfig
 
 # Configure logging
 logging.basicConfig(
@@ -42,6 +43,7 @@ warnings.filterwarnings("ignore", category=UserWarning, module="pydantic")
 load_dotenv(override=True)
 
 app_name = config.APP_NAME
+agent_config = config.agent_config
 
 app = FastAPI(title="Despina: The Multi Lingual Agent")
 session_service = InMemorySessionService()
