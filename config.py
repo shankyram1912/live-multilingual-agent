@@ -50,6 +50,11 @@ class AgentConfig:
             #     api_client=custom_client
             # )
             
+            self.ORCHESTRATOR_MODEL = os.getenv(
+                "LIVEAGENT_GEMINI_MODEL", 
+                "gemini-3.1-flash-live-preview"
+            )            
+            
         else:
             logger.info("Need to route to VERTEX AI API.")
             
