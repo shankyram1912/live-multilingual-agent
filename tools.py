@@ -13,11 +13,10 @@ import asyncio
 logging.basicConfig(level=logging.INFO) 
 logger = logging.getLogger(__name__)
 
-class Tools:
-
-    def travel_risk_assessment(country_code: str) -> str:
+class Tools:        
+    def travel_risk_assessment(self, country_code: str) -> str:
         """
-        Call this tool whenever the user specifically raised questions on safety bulletins or travel advisories to a specific country.
+        Tool whenever the user specifically raised questions on safety bulletins or travel advisories to a specific country.
         
         Args:
             country_code: The 2-letter ISO 3166-1 alpha-2 country code (e.g., 'JP', 'FR', 'BR').

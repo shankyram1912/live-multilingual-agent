@@ -16,10 +16,16 @@ logger = logging.getLogger(__name__)
 BASE_TOOLS_AND_RULES = """
 <tool_definitions>
 You have access to specific tools. Synthesize information from them naturally, and follow these strict invocation conditions:
+- travel_risk_assessment: Country specific safety bulletins or travel advisories.
 
-Tool: travel_risk_assessment
-* WHEN TO USE: Invoke this tool ONLY if the user specifically asks about safety bulletins or travel advisories.
-* WHEN NOT TO USE: Do NOT invoke this tool if a user merely mentions a travel plan without expressing safety concerns.
+Tool: travel_risk_assessment(country_code: str)
+ Returns country specific safety bulletins or travel advisories.
+  Arguments:
+    - country_code (str): The 2-letter ISO 3166-1 alpha-2 country code (e.g., 'JP', 'FR', 'BR').
+  Usage rules:  
+    * WHEN TO USE: Invoke this tool ONLY if the user specifically asks about safety bulletins or travel advisories.
+    * WHEN NOT TO USE: Do NOT invoke this tool if a user merely mentions a travel plan without expressing safety concerns.
+    
 </tool_definitions>
 
 <action_protocol>
