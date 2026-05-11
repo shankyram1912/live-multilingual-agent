@@ -7,7 +7,6 @@ import base64
 import json
 import time
 import warnings
-import config
 import uvicorn
 
 from typing import Optional
@@ -36,6 +35,7 @@ logger = logging.getLogger(__name__)
 # Suppress Pydantic serialization warnings
 warnings.filterwarnings("ignore", category=UserWarning, module="pydantic")
 
+import config
 from config import AgentConfig
 from agents import get_despina_agent
 
