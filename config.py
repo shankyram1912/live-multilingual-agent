@@ -1,8 +1,13 @@
 import os
 from dotenv import load_dotenv
 
+import logging
+
 # Load environment variables early
 load_dotenv(override=True)
+
+logger = logging.getLogger(__name__)
+
 class AgentConfig:
     """
     Manages environment-based routing between Gemini AI Studio 
