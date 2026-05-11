@@ -107,10 +107,10 @@ async def websocket_endpoint(
 
     # Fetch Agent Dynamically (Run in Threadpool so we don't block the event loop)
     try:
-        agent = await run_in_threadpool(get_aris_agent)
-        logger.info(f"Successfully loaded agent profile for ARIS")
+        agent = await run_in_threadpool(get_despina_agent)
+        logger.info(f"Successfully loaded agent profile for DESPINA")
     except Exception as e:
-        logger.error(f"Failed to load agent ARIS: {e}")
+        logger.error(f"Failed to load agent DESPINA: {e}")
         await websocket.close(code=1008, reason=f"Agent load failed: {str(e)}")
         return
 
