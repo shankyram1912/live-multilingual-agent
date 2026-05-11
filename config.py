@@ -19,7 +19,7 @@ class AgentConfig:
         if self.use_gemini:
             # 1. Sanitize the environment to force Google AI Studio API-Key routing
             
-            logger.INFO("Need to route to GEMINI API (Google AI Studio). Sanitizing the environment to force Google AI Studio API-Key routing")
+            logger.info("Need to route to GEMINI API (Google AI Studio). Sanitizing the environment to force Google AI Studio API-Key routing")
             
             os.environ.pop("GOOGLE_GENAI_USE_VERTEXAI", None)
             os.environ.pop("GOOGLE_CLOUD_PROJECT", None)
@@ -38,7 +38,7 @@ class AgentConfig:
                 "gemini-3.1-flash-live-preview"
             )
         else:
-            logger.INFO("Need to route to VERTEX AI API. Sanitizing the environment to remove Google AI Studio API-Key")
+            logger.info("Need to route to VERTEX AI API. Sanitizing the environment to remove Google AI Studio API-Key")
             
             os.environ.pop("GEMINI_API_KEY", None)
             
